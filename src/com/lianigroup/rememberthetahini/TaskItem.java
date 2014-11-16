@@ -1,7 +1,13 @@
 package com.lianigroup.rememberthetahini;
 
-public class TaskItem {
+import java.io.Serializable;
+
+public class TaskItem implements Serializable{
 	
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	//our fields in the tasks
 	private String description;
 	private Boolean completed;

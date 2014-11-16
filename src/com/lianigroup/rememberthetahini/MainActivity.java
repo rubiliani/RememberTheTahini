@@ -5,10 +5,15 @@ import java.util.List;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
@@ -16,6 +21,25 @@ public class MainActivity extends Activity {
 	List<TaskItem> itemList;
 	Context context = MainActivity.this;
 	
+	public final int REQUEST_CODE_TASK = 1;
+	
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		
+		if(requestCode == REQUEST_CODE_TASK)
+		{
+			if(resultCode == RESULT_OK)
+			{
+				TaskItem task = (TaskItem)data.getSerializableExtra("item");
+			
+				itemList.add(task);
+				TaskItemAdapter adapter =  new TaskItemAdapter(context, itemList);
+				list.setAdapter(adapter);
+		        adapter.notifyDataSetChanged();
+			}
+		}
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -24,6 +48,15 @@ public class MainActivity extends Activity {
 		list  = (ListView)findViewById(R.id.listView);
 		itemList = PopulateData();
 		list.setAdapter(new TaskItemAdapter(context, itemList));
+		
+		
+		list.setOnItemClickListener(new OnItemClickListener() {
+	        @Override
+	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+	            
+	        	//Toast.makeText(context, "Clicked", Toast.LENGTH_LONG).show();
+	        }
+	    });
 	}
 
 	@Override
@@ -45,28 +78,15 @@ public class MainActivity extends Activity {
 		return super.onOptionsItemSelected(item);
 	}
 	
+	public void newTaskBtn(View view) {
+		
+		Intent i = new Intent(this,CreateTaskActivity.class);
+		startActivityForResult(i, 1);
+	}
+	
 	private List<TaskItem> PopulateData()
 	{
 		List<TaskItem> list = new ArrayList<TaskItem>();
-		list.add(new TaskItem("Task 1", true));
-		list.add(new TaskItem("Task 2", false));
-		list.add(new TaskItem("Task 3", false));
-		list.add(new TaskItem("Task 4", true));
-		list.add(new TaskItem("Task 5", true));
-		list.add(new TaskItem("Task 6", true));
-		list.add(new TaskItem("Task 1", true));
-		list.add(new TaskItem("Task 2", false));
-		list.add(new TaskItem("Task 3", false));
-		list.add(new TaskItem("Task 4", true));
-		list.add(new TaskItem("Task 5", true));
-		list.add(new TaskItem("Task 6", true));
-		list.add(new TaskItem("Task 1", true));
-		list.add(new TaskItem("Task 2", false));
-		list.add(new TaskItem("Task 3", false));
-		list.add(new TaskItem("Task 4", true));
-		list.add(new TaskItem("Task 5", true));
-		list.add(new TaskItem("Task 6", true));
-		
 		return list;
 		
 	}
