@@ -1,26 +1,33 @@
-<?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+android:layout_width="match_parent"
+android:layout_height="?android:attr/listPreferredItemHeight"
+android:descendantFocusability="blocksDescendants">
+
+    <LinearLayout
     android:layout_width="match_parent"
-    android:layout_height="match_parent" 
-    android:layout_margin="5dp"
-    android:descendantFocusability="blocksDescendants">
+    android:layout_height="match_parent"
+    
+    android:layout_marginTop="4dp"
+    android:layout_marginBottom="4dp"
+    android:background="@drawable/card_background">
 
-    <TextView
+        <TextView
         android:id="@+id/textView1"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/checkBox1"
-        android:textAppearance="?android:attr/textAppearanceLarge" 
-        android:layout_margin="10dp"/>
-
-    <CheckBox
+        android:layout_gravity="left|center_vertical"
+        android:layout_width="0dp"
+        android:layout_weight="1"
+        android:textColor="@android:color/primary_text_light"
+        android:layout_height="wrap_content" 
+        android:textSize="18sp"/>
+        
+        <CheckBox
         android:id="@+id/checkBox1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentTop="true"
         android:text="" 
         android:layout_margin="10dp"/>
 
-</RelativeLayout>
+    </LinearLayout>
+
+</FrameLayout>

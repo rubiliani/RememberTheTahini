@@ -61,6 +61,10 @@ public class TaskItemAdapter extends BaseAdapter{
 		            Log.d("position",Integer.toString(position));
 		            TaskItem item = (TaskItem) cb.getTag();
 		            item.setCompleted(cb.isChecked());
+		            
+		            DBHelper db = new DBHelper(context);
+		            db.updateTask(item);
+		            
 		    
 		            strikeThruText(viewHold,item.getCompleted());
 		          }  
@@ -101,6 +105,14 @@ public class TaskItemAdapter extends BaseAdapter{
 	public static class ViewHolder{
 		TextView tv;
 		CheckBox cb;
+	}
+	
+	public boolean removeItem(int position)
+	{
+		 DBHelper db = new DBHelper(context);
+         db.deleteTask((TaskItem)getItem(position));
+		itemList.remove(position);
+		return true;
 	}
 
 }

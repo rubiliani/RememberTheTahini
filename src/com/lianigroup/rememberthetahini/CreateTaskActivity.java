@@ -41,6 +41,11 @@ public class CreateTaskActivity extends Activity {
 		EditText text = (EditText)findViewById(R.id.taskDescEdit);
 		TaskItem task = new TaskItem(text.getText().toString(), false);
 		Intent returnIntent = new Intent();
+		
+		DBHelper db = new DBHelper(this);
+		long res = db.addTask(task);
+		task.setTaskId(res);
+		
 		returnIntent.putExtra("item",task);
 		setResult(RESULT_OK,returnIntent);
 		finish();

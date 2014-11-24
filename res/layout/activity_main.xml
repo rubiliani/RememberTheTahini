@@ -7,7 +7,8 @@
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.lianigroup.rememberthetahini.MainActivity" 
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="#e5e5e5">
 
     <Button
         style="@style/btnStyleGreen"
@@ -15,14 +16,15 @@
         android:layout_height="wrap_content"
         android:text="@string/new_task_btn" 
         android:onClick="newTaskBtn"/>
-
+       
     <ListView
         android:id="@+id/listView"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content" 
-        android:layout_marginTop="15dp"
-       >
-
-</ListView>
+        android:layout_marginTop="5dp"
+		android:layout_width="fill_parent"
+		android:layout_height="fill_parent"
+		android:divider="@null"
+		android:dividerHeight="0dp">
+	</ListView>
 
 </LinearLayout>
+

@@ -12,6 +12,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
+import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -20,6 +21,7 @@ public class MainActivity extends Activity {
 	ListView list;
 	List<TaskItem> itemList;
 	Context context = MainActivity.this;
+	TaskItemAdapter adapter;
 	
 	public final int REQUEST_CODE_TASK = 1;
 	
@@ -33,7 +35,7 @@ public class MainActivity extends Activity {
 				TaskItem task = (TaskItem)data.getSerializableExtra("item");
 			
 				itemList.add(task);
-				TaskItemAdapter adapter =  new TaskItemAdapter(context, itemList);
+				adapter =  new TaskItemAdapter(context, itemList);
 				list.setAdapter(adapter);
 		        adapter.notifyDataSetChanged();
 			}
@@ -46,9 +48,26 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		list  = (ListView)findViewById(R.id.listView);
-		itemList = PopulateData();
+		
+		DBHelper db = new DBHelper(this);
+		itemList = db.getAllTasks();
+		
+		//itemList = PopulateData();
 		list.setAdapter(new TaskItemAdapter(context, itemList));
 		
+		list.setOnItemLongClickListener(new OnItemLongClickListener() {
+
+		    @Override
+		    public boolean onItemLongClick(AdapterView<?> parent, View view,
+		            int position, long arg3) {
+		    	((TaskItemAdapter)parent.getAdapter()).removeItem(position);
+		    	//adapter.removeItem(position);
+		    	((TaskItemAdapter)parent.getAdapter()).notifyDataSetChanged();
+
+		        return false;
+		    }});
+		
+		/*
 		
 		list.setOnItemClickListener(new OnItemClickListener() {
 	        @Override
@@ -56,7 +75,7 @@ public class MainActivity extends Activity {
 	            
 	        	//Toast.makeText(context, "Clicked", Toast.LENGTH_LONG).show();
 	        }
-	    });
+	    });*/
 	}
 
 	@Override
@@ -84,10 +103,4 @@ public class MainActivity extends Activity {
 		startActivityForResult(i, 1);
 	}
 	
-	private List<TaskItem> PopulateData()
-	{
-		List<TaskItem> list = new ArrayList<TaskItem>();
-		return list;
-		
-	}
 }
