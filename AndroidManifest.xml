@@ -57,6 +57,7 @@
             android:value="AIzaSyBOvihbRdUh6h7bn1-t7WrNzitz-837xdo" />
          
          <service android:name=".GeofencingReceiverIntentService"/>
+         <service android:name=".GeofenceTransitionsIntentService"/>
         
     </application>
 

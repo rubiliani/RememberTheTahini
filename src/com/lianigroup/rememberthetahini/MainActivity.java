@@ -4,6 +4,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
+import com.google.android.gms.common.api.Result;
+import com.google.android.gms.common.api.ResultCallback;
+
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.Notification;
@@ -21,7 +24,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.ListView;
 import android.widget.Toast;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements ResultCallback{
 
 	ListView list;
 	List<TaskItem> itemList;
@@ -191,6 +194,13 @@ public class MainActivity extends Activity {
 		//Intent i = new Intent(this,CreateTaskActivity.class);
 		//i.putExtra("item", )
 		//startActivityForResult(i, 1);
+	}
+
+	@Override
+	public void onResult(Result arg0) {
+		// TODO Auto-generated method stub
+		Toast.makeText(this, "Result Main", Toast.LENGTH_LONG).show();
+		
 	}
 	
 }
