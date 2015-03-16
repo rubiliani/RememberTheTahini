@@ -132,7 +132,7 @@ public class MainActivity extends Activity implements ResultCallback{
 	        @Override
 	        public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 	            
-	        	Toast.makeText(context, "Long press to edit task", Toast.LENGTH_LONG).show();
+	        	Toast.makeText(context, "Long press to edit task", Toast.LENGTH_SHORT).show();
 	        }
 	    });
 		/*

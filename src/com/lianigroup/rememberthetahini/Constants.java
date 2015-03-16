@@ -20,12 +20,7 @@ public final class Constants {
     public static final Uri GEOFENCE_DATA_ITEM_URI =
             new Uri.Builder().scheme("wear").path(GEOFENCE_DATA_ITEM_PATH).build();
     public static final String KEY_GEOFENCE_ID = "geofence_id";
-    public static final String KEY_EXPIRATION_DURATION =
-            "com.example.wearable.geofencing.KEY_EXPIRATION_DURATION";
-    public static final String KEY_TRANSITION_TYPE =
-            "com.example.wearable.geofencing.KEY_TRANSITION_TYPE";
-    // The prefix for flattened geofence keys.
-    public static final String KEY_PREFIX = "com.example.wearable.geofencing.KEY";
+  
 
 
     // For the purposes of this demo, the geofences are hard-coded and should not expire.

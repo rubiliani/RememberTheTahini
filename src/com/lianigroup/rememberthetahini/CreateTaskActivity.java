@@ -370,6 +370,7 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 	 * a geofence transition occurs.
 	 */
 	private PendingIntent getGeofenceTransitionPendingIntent() {
+		
 		Intent intent = new Intent(this, GeofencingReceiverIntentService.class);
 		return PendingIntent.getService(this, 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
@@ -437,7 +438,7 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 	@Override
 	public void onResult(Result arg0) {
 		// TODO Auto-generated method stub
-		Toast.makeText(this, "Result Create", Toast.LENGTH_LONG).show();
+		//Toast.makeText(this, "Result Create", Toast.LENGTH_LONG).show();
 		
 	}
 }

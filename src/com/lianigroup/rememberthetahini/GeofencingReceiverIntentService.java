@@ -57,9 +57,7 @@ public class GeofencingReceiverIntentService extends ReceiveGeofenceTransitionBa
 				// Build notification
 				Notification noti = new Notification.Builder(this)
 				.setContentTitle("Task Reminder").setContentText(text)
-				.setSmallIcon(R.drawable.ic_launcher).setContentIntent(pIntent)
-				.build();
-				noti.flags |= Notification.FLAG_AUTO_CANCEL;
+				.setSmallIcon(R.drawable.ic_launcher).setContentIntent(pIntent).setAutoCancel(true).build();
 				notificationManager.notify(0, noti);
 
 	}
