@@ -1,5 +1,6 @@
 package com.lianigroup.rememberthetahini;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import android.util.Log;
 
 public class DBHelper extends SQLiteOpenHelper{
 	
-	private static final int DATABASE_VERSION = 2;
+	private static final int DATABASE_VERSION = 4;
 
 	private static final String DATABASE_NAME = "tasks.db";
 
@@ -26,10 +27,17 @@ public class DBHelper extends SQLiteOpenHelper{
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		final String SQL_CREATE_LOCATION_TABLE = "CREATE TABLE "
-				+ TaskItemEntry.TABLE_NAME + " (" + TaskItemEntry.COLUMN_NAME_TASK_ID
-				+ " INTEGER PRIMARY KEY," + TaskItemEntry.COLUMN_NAME_DESCRIPTION
-				+ " TEXT NOT NULL, " + TaskItemEntry.COLUMN_NAME_COMPLETED
-				+ " TINYINT)";
+				+ TaskItemEntry.TABLE_NAME + " (" 
+				+ TaskItemEntry.COLUMN_NAME_TASK_ID+ " INTEGER PRIMARY KEY," 
+				+ TaskItemEntry.COLUMN_NAME_DESCRIPTION+ " TEXT NOT NULL, " 
+				+ TaskItemEntry.COLUMN_NAME_PRIORITY+ " INTEGER, " 
+				+ TaskItemEntry.COLUMN_NAME_DUE_DATE+ " TEXT, " 
+				+ TaskItemEntry.COLUMN_NAME_LOCATION_LAT+ " REAL, " 
+				+ TaskItemEntry.COLUMN_NAME_LOCATION_LON+ " REAL, "
+				+ TaskItemEntry.COLUMN_NAME_COMPLETED+ " TINYINT, "
+				+ TaskItemEntry.COLUMN_NAME_DATE_ENABLED+ " TINYINT, "
+				+ TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED+ " TINYINT "
+				+")";
 		db.execSQL(SQL_CREATE_LOCATION_TABLE);
 		
 	}
@@ -45,7 +53,32 @@ public class DBHelper extends SQLiteOpenHelper{
 	    SQLiteDatabase db = this.getWritableDatabase();
 	 
 	    ContentValues values = new ContentValues();
-	    values.put(TaskItemEntry.COLUMN_NAME_DESCRIPTION, task.getDescription()); 
+	    values.put(TaskItemEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
+	    if(task.getPriority() == null)
+	    	values.put(TaskItemEntry.COLUMN_NAME_PRIORITY, "NORMAL");
+	    else
+	    	values.put(TaskItemEntry.COLUMN_NAME_PRIORITY, task.getPriority().toString());
+	    
+	    if(task.getHasDate())
+	    {
+	    	
+	    	SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	    	
+	    	values.put(TaskItemEntry.COLUMN_NAME_DUE_DATE, sdf.format(task.getDueDate()));
+	    	values.put(TaskItemEntry.COLUMN_NAME_DATE_ENABLED, 1); 
+	    }
+	    else
+	    	values.put(TaskItemEntry.COLUMN_NAME_DATE_ENABLED, 0); 
+	    if(task.getHasLocation())
+	    {
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_LAT, task.getLocation().getLat());
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_LON, task.getLocation().getLng());
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED, 1); 
+	    }
+	    else
+	    	 values.put(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED, 0); 
+	    
+	    
 	    values.put(TaskItemEntry.COLUMN_NAME_COMPLETED, 0); 
 	 
 	    // Inserting Row
@@ -69,15 +102,25 @@ public class DBHelper extends SQLiteOpenHelper{
 	    // looping through all rows and adding to list
 	    if (cursor.moveToFirst()) {
 	        do {
-	        	int id = cursor.getInt(0);
-	        	String desc = cursor.getString(1); 
-	        	int comp = cursor.getInt(2);
+	        	int id = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_TASK_ID));
+	        	String desc = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DESCRIPTION));
+	        	String dueDate = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DUE_DATE));
+	        	Double lat = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LAT));
+	        	Double lon = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LON));
+	        	int comp = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_COMPLETED));
+	        	int locEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED));
+	        	int dateEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DATE_ENABLED));
+	        	String prior = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_PRIORITY));
+	        	
 	        	Boolean complete = false;
 	        	if(comp>0)
 	        		complete = true;
 	        	
 	        	
 	            TaskItem task = new TaskItem(id,desc,complete);
+	            task.setDueDate(dueDate);
+	            task.setLocation(lat,lon);
+	            task.setPriority(Priority.valueOf(prior));
 	          
 	            taskList.add(task);
 	        } while (cursor.moveToNext());
@@ -97,7 +140,31 @@ public class DBHelper extends SQLiteOpenHelper{
         else
         	boolVal=0;
         
-	    values.put(TaskItemEntry.COLUMN_NAME_DESCRIPTION, task.getDescription()); 
+        values.put(TaskItemEntry.COLUMN_NAME_DESCRIPTION, task.getDescription());
+	    if(task.getPriority() == null)
+	    	values.put(TaskItemEntry.COLUMN_NAME_PRIORITY, "NORMAL");
+	    else
+	    	values.put(TaskItemEntry.COLUMN_NAME_PRIORITY, task.getPriority().toString());
+	    
+	    if(task.getHasDate())
+	    {
+	    	
+	    	SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+	    	
+	    	values.put(TaskItemEntry.COLUMN_NAME_DUE_DATE, sdf.format(task.getDueDate()));
+	    	values.put(TaskItemEntry.COLUMN_NAME_DATE_ENABLED, 1); 
+	    }
+	    else
+	    	values.put(TaskItemEntry.COLUMN_NAME_DATE_ENABLED, 0); 
+	    if(task.getHasLocation())
+	    {
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_LAT, task.getLocation().getLat());
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_LON, task.getLocation().getLng());
+	    	values.put(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED, 1); 
+	    }
+	    else
+	    	 values.put(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED, 0); 
+	    
 	    values.put(TaskItemEntry.COLUMN_NAME_COMPLETED, boolVal); 
  
         // updating row

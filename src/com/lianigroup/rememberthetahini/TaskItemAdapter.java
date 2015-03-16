@@ -2,6 +2,8 @@ package com.lianigroup.rememberthetahini;
 
 import java.util.List;
 import android.content.Context;
+import android.content.DialogInterface.OnClickListener;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +11,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.CheckBox;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -17,6 +20,7 @@ public class TaskItemAdapter extends BaseAdapter{
 	private List<TaskItem> itemList;
 	private Context context;
 	private LayoutInflater inflater;
+	private OnClickListener myClickListener;
 	
 	public TaskItemAdapter(Context context, List<TaskItem> list) {
 		this.itemList = list;
@@ -52,20 +56,45 @@ public class TaskItemAdapter extends BaseAdapter{
 			viewHold = new ViewHolder();
 			convertView.setTag(viewHold);
 			
+			if(!item.getHasLocation())
+			{
+				TextView icon = (TextView)convertView.findViewById(R.id.mapIconView);
+				icon.setVisibility(View.GONE);
+			}
+			
+			if(!item.getHasDate())
+			{
+				TextView icon = (TextView)convertView.findViewById(R.id.alarmIconView);
+				icon.setVisibility(View.GONE);
+			}
+			
+			LinearLayout prio = (LinearLayout)convertView.findViewById(R.id.priority);
+			switch(item.getPriority())
+			{
+				case NORMAL:
+					prio.setBackgroundColor(Color.parseColor("#4EC750"));
+					break;
+				case MEDIUM:
+					prio.setBackgroundColor(Color.parseColor("#FAAA5A"));
+					break;
+				case HIGH:
+					prio.setBackgroundColor(Color.RED);
+					break;
+			}
+			
 			viewHold.cb = (CheckBox)convertView.findViewById(R.id.checkBox1);
 			viewHold.tv = (TextView)convertView.findViewById(R.id.textView1);
 			
 			viewHold.cb.setOnClickListener( new View.OnClickListener() {  
 		          public void onClick(View v) {  
 		            CheckBox cb = (CheckBox) v ; 
-		            Log.d("position",Integer.toString(position));
+		            
 		            TaskItem item = (TaskItem) cb.getTag();
 		            item.setCompleted(cb.isChecked());
 		            
 		            DBHelper db = new DBHelper(context);
 		            db.updateTask(item);
 		            
-		    
 		            strikeThruText(viewHold,item.getCompleted());
 		          }  
 		        });  
@@ -109,8 +138,8 @@ public class TaskItemAdapter extends BaseAdapter{
 	
 	public boolean removeItem(int position)
 	{
-		 DBHelper db = new DBHelper(context);
-         db.deleteTask((TaskItem)getItem(position));
+		DBHelper db = new DBHelper(context);
+        db.deleteTask((TaskItem)getItem(position));
 		itemList.remove(position);
 		return true;
 	}

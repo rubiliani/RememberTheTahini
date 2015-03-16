@@ -6,9 +6,23 @@
     <string name="action_settings">Settings</string>
     <string name="new_task_btn">New Task</string>
     <string name="title_activity_create_task">Create New Task</string>
+    <string name="title_activity_update_task">Edit Task</string>
     <string name="task_description">Task Description</string>
     <string name="create_task_btn">Create Task</string>
-	<string name="discard_btn">Discard</string>
-    
-</resources>
+    <string name="discard_btn">Discard</string>
+    <string name="delete_btn">Delete Task</string>
+    <string name="update_task_btn">Update Task</string>
+    <string name="priority_prompt">Choose Priority</string>
+    <string name="priority_high">High</string>
+    <string name="priority_med">Medium</string>
+    <string name="priority_norm">Normal</string>
 
+    <string-array name="priority_arrays">
+        <item>Normal</item>
+        <item>Medium</item>
+        <item>High</item>
+    </string-array>
+
+    <string name="title_activity_map">Map</string>
+
+</resources>

@@ -13,6 +13,12 @@ public final class TaskItemContract {
 	        public static final String COLUMN_NAME_TASK_ID = "taskid";
 	        public static final String COLUMN_NAME_DESCRIPTION = "description";
 	        public static final String COLUMN_NAME_COMPLETED = "completed";
+	        public static final String COLUMN_NAME_PRIORITY = "priority";
+	        public static final String COLUMN_NAME_DUE_DATE = "dueDate";
+	        public static final String COLUMN_NAME_LOCATION_LAT = "lat";
+	        public static final String COLUMN_NAME_LOCATION_LON = "lon";
+	        public static final String COLUMN_NAME_LOCATION_ENABLED = "locEnable";
+	        public static final String COLUMN_NAME_DATE_ENABLED = "dateEnable";
 	       
 	    }
 
