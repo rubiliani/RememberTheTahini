@@ -7,15 +7,14 @@ import java.util.Date;
 import java.util.List;
 
 import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.OnConnectionFailedListener;
 import com.google.android.gms.common.api.Result;
 import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.Geofence;
 import com.google.android.gms.location.GeofencingRequest;
+import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 
 import android.app.Activity;
@@ -34,16 +33,22 @@ import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.Toast;
 
-public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
+public class CreateTaskActivity extends Activity implements
 		OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks,ResultCallback {
 	
 	private TaskItem myTask = new TaskItem();
+	private boolean updateMode = false;
 	public final int REQUEST_CODE_GET_LOC = 3;
+	 // Location updates intervals in sec
+    private static int UPDATE_INTERVAL = 10000; // 10 sec
+    private static int FATEST_INTERVAL = 5000; // 5 sec
+    private static int DISPLACEMENT = 10; // 10 meters
+ 
 	
 	GeofenceItem geofenceItem;
 	List<Geofence> mGeofenceList = new ArrayList<Geofence>();
-	
-	private LocationServices mLocationService;
+
+	private LocationRequest mLocationRequest;
 	// Stores the PendingIntent used to request geofence monitoring.
 	private PendingIntent mGeofenceRequestIntent;
 	private GoogleApiClient mApiClient;
@@ -59,6 +64,10 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_create_task);
 		
+		if(isGooglePlayServicesAvailable())
+		{
+			buildGoogleApiClient();
+		}
 		myTask.setHasDate(false);
 		myTask.setHasLocation(false);
 		
@@ -72,7 +81,7 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 		
 		if(i.hasExtra("item"))
 		{
-			
+			updateMode = true;
 			setTitle(R.string.title_activity_update_task);
 			myTask = (TaskItem)i.getSerializableExtra("item");
 			setContentView(R.layout.activity_update_task);
@@ -108,9 +117,13 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 					break;
 			}
 			
-			Log.d("TESTING", date.getText().toString());
-			Log.d("TESTING", time.getText().toString());
-			Log.d("TESTING", text.getText().toString());
+			
+			
+			if(myTask.getHasLocation())
+			{
+				
+				mApiClient.connect();
+			}
 			
 		
 		}
@@ -181,7 +194,6 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 			myTask.setHasDate(true);
 		}catch(Exception e){myTask.setHasDate(false);};
 		
-		
 		Intent returnIntent = new Intent();
 		
 		DBHelper db = new DBHelper(this);
@@ -191,30 +203,19 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 		returnIntent.putExtra("item",myTask);
 		setResult(RESULT_OK,returnIntent);
 		
-		///////tetsting notifications
 		if(myTask.getHasDate())
 		{
 			Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
 			myIntent.putExtra("task", myTask);
 			
 			PendingIntent pendingIntent =
-					PendingIntent.getBroadcast(getBaseContext(), 0, myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+					PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
 			
 			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
 			
 			Calendar calendar = Calendar.getInstance();
 			
 			calendar.setTimeInMillis(myTask.getDueDate().getTime());
-			
-			Log.d("rubi", calendar.toString());
-			Log.d("rubi", calendar.getTime().toString());
-			Log.d("rubi", myTask.getDueDate().toString());
-			String s = String.valueOf(Calendar.getInstance().getTimeInMillis());
-			String s1 = String.valueOf(calendar.getTimeInMillis());
-			String s2 = String.valueOf(Calendar.getInstance().getTimeInMillis() - calendar.getTimeInMillis());
-			Log.d("rubi",s);
-			Log.d("rubi",s1);
-			Log.d("rubi",s2);
 	
 	        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
 		}
@@ -228,8 +229,7 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 				return;
 			}
 
-			mApiClient = new GoogleApiClient.Builder(this).addApi(LocationServices.API).addConnectionCallbacks(this)
-					.addOnConnectionFailedListener(this).build();
+			buildGoogleApiClient();
 
 			
 			mApiClient.connect();
@@ -238,15 +238,15 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 					String.valueOf(myTask.getTaskId()), // geofenceId.
 					myTask.getLocation().getLat(), myTask.getLocation().getLng(),
 					800, Constants.GEOFENCE_EXPIRATION_TIME,
-					Geofence.GEOFENCE_TRANSITION_ENTER
-							| Geofence.GEOFENCE_TRANSITION_EXIT);
+					Geofence.GEOFENCE_TRANSITION_ENTER);
 			
 			
 			mGeofenceList.add(geofenceItem.toGeofence());
 			
-			finish();
+			
 			
 		}
+		finish();
 	}
 	
 	private GeofencingRequest getGeofencingRequest() {
@@ -334,6 +334,39 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 	
 	public void deleteBtnClick(View view)
 	{
+		if(myTask.getHasLocation())
+		{
+			List<String> ids =new ArrayList<String>();
+			ids.add(String.valueOf(myTask.getTaskId()));
+			
+			//LocationServices.GeofencingApi.
+			/*
+			try {
+	            // Remove geofences.
+	            LocationServices.GeofencingApi.removeGeofences(
+	                    mApiClient,
+	                    // This is the same pending intent that was used in addGeofences().
+	                    getGeofenceTransitionPendingIntent()
+	            ).setResultCallback(this); // Result processed in onResult().
+	        } catch (SecurityException securityException) {
+	            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
+	           
+	        }*/
+			LocationServices.GeofencingApi.removeGeofences(mApiClient, ids);
+		}
+		
+		if(myTask.getHasDate())
+		{
+			Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
+			myIntent.putExtra("task", myTask);
+			
+			PendingIntent pendingIntent =
+					PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+			
+			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+			
+			alarmManager.cancel(pendingIntent);
+		}
 		Intent returnIntent = new Intent();
 		
 		myTask.setToDelete(true);
@@ -400,25 +433,35 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 	public void onConnected(Bundle arg0) {
 		// TODO Auto-generated method stub
 		
-		Toast.makeText(this, "Start geofence service", Toast.LENGTH_SHORT).show();
-		
 		mGeofenceRequestIntent = getGeofenceTransitionPendingIntent();
-		/*getGeofencingRequest();
-		LocationServices.GeofencingApi.addGeofences(mApiClient, mGeofenceList,
-				mGeofenceRequestIntent);
-		*/
 		
-		LocationServices.GeofencingApi.addGeofences(
-				mApiClient,
-                getGeofencingRequest(),
-                mGeofenceRequestIntent
-        ).setResultCallback(this);
-		
+		if(!updateMode)
+		{
+			LocationServices.GeofencingApi.addGeofences(
+					mApiClient,
+	                getGeofencingRequest(),
+	                mGeofenceRequestIntent).setResultCallback(this);
+		}
 		
 		
 		
 		
 	}
+	
+	protected void createLocationRequest() {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(UPDATE_INTERVAL);
+        mLocationRequest.setFastestInterval(FATEST_INTERVAL);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setSmallestDisplacement(DISPLACEMENT);
+    }
+	
+	 protected synchronized void buildGoogleApiClient() {
+	        mApiClient = new GoogleApiClient.Builder(this)
+	                .addConnectionCallbacks(this)
+	                .addOnConnectionFailedListener(this)
+	                .addApi(LocationServices.API).build();
+	    }
 
 	@Override
 	public void onConnectionSuspended(int arg0) {
@@ -426,9 +469,8 @@ public class CreateTaskActivity extends Activity implements ConnectionCallbacks,
 		Toast.makeText(this, "geofence service suspend", Toast.LENGTH_SHORT).show();
 		
 		
-	}
+	} 
 
-	@Override
 	public void onDisconnected() {
 		// TODO Auto-generated method stub
 		Toast.makeText(this, "geofence service disconnected", Toast.LENGTH_SHORT).show();

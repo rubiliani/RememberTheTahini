@@ -56,11 +56,7 @@
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyBOvihbRdUh6h7bn1-t7WrNzitz-837xdo" />
          
-         <service
-          	android:name=".GeofencingReceiverIntentService"
-          	android:exported="true">
-                  
-             
+         <service android:name=".GeofencingReceiverIntentService">
          </service>        
     </application>
 

@@ -46,8 +46,7 @@ public abstract class ReceiveGeofenceTransitionBaseIntentService extends
 				int transition = event.getGeofenceTransition();
 				if (transition == Geofence.GEOFENCE_TRANSITION_ENTER
 						|| transition == Geofence.GEOFENCE_TRANSITION_DWELL
-						|| transition == Geofence.GEOFENCE_TRANSITION_EXIT) 
-				{
+						|| transition == Geofence.GEOFENCE_TRANSITION_EXIT) {
 					String[] geofenceIds = new String[event
 							.getTriggeringGeofences().size()];
 					for (int index = 0; index < event.getTriggeringGeofences()

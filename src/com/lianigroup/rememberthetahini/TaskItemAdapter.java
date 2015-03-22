@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.DialogInterface.OnClickListener;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,7 +12,6 @@ import android.widget.BaseAdapter;
 import android.widget.CheckBox;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class TaskItemAdapter extends BaseAdapter{
 
@@ -86,7 +84,8 @@ public class TaskItemAdapter extends BaseAdapter{
 			viewHold.tv = (TextView)convertView.findViewById(R.id.textView1);
 			
 			viewHold.cb.setOnClickListener( new View.OnClickListener() {  
-		          public void onClick(View v) {  
+		          @Override
+				public void onClick(View v) {  
 		            CheckBox cb = (CheckBox) v ; 
 		            
 		            TaskItem item = (TaskItem) cb.getTag();
