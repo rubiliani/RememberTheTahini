@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -19,8 +20,10 @@ import com.google.android.gms.location.LocationServices;
 
 import android.app.Activity;
 import android.app.AlarmManager;
+import android.app.AlertDialog;
 import android.app.DialogFragment;
 import android.app.PendingIntent;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
@@ -29,8 +32,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.widget.EditText;
 import android.widget.RadioButton;
+import android.widget.Switch;
 import android.widget.Toast;
 
 public class CreateTaskActivity extends Activity implements
@@ -63,6 +68,8 @@ public class CreateTaskActivity extends Activity implements
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_create_task);
+		//Get a Tracker (should auto-report)
+		((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
 		
 		if(isGooglePlayServicesAvailable())
 		{
@@ -79,6 +86,17 @@ public class CreateTaskActivity extends Activity implements
 		date.setInputType(InputType.TYPE_NULL);
 		time.setInputType(InputType.TYPE_NULL);
 		
+		date.setOnFocusChangeListener(new OnFocusChangeListener() {
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(hasFocus)showDatePickerDialog(v);
+			}
+		});
+		
+		time.setOnFocusChangeListener(new OnFocusChangeListener() {
+			public void onFocusChange(View v, boolean hasFocus) {
+				if(hasFocus)showTimePickerDialog(v);
+			}
+		});
 		if(i.hasExtra("item"))
 		{
 			updateMode = true;
@@ -91,6 +109,18 @@ public class CreateTaskActivity extends Activity implements
 			time = (EditText)findViewById(R.id.taskTimeEdit);
 			date.setInputType(InputType.TYPE_NULL);
 			time.setInputType(InputType.TYPE_NULL);
+			
+			date.setOnFocusChangeListener(new OnFocusChangeListener() {
+				public void onFocusChange(View v, boolean hasFocus) {
+					if(hasFocus)showDatePickerDialog(v);
+				}
+			});
+			
+			time.setOnFocusChangeListener(new OnFocusChangeListener() {
+				public void onFocusChange(View v, boolean hasFocus) {
+					if(hasFocus)showTimePickerDialog(v);
+				}
+			});
 			
 			text.setText(myTask.getDescription());
 			if(myTask.getHasDate())
@@ -123,6 +153,8 @@ public class CreateTaskActivity extends Activity implements
 			{
 				
 				mApiClient.connect();
+				Switch s = (Switch)findViewById(R.id.switch1);
+				s.setChecked(true);
 			}
 			
 		
@@ -141,6 +173,12 @@ public class CreateTaskActivity extends Activity implements
 				case REQUEST_CODE_GET_LOC:
 				{
 					MapPoint point = (MapPoint)data.getSerializableExtra("latlng");
+					if(point==null)
+					{
+						Switch s = (Switch)findViewById(R.id.switch1);
+						s.setChecked(false);
+						return;
+					}
 					myTask.setLocation(point);
 					myTask.setHasLocation(true);
 				}
@@ -148,6 +186,11 @@ public class CreateTaskActivity extends Activity implements
 				
 				
 			}
+		}
+		else
+		{
+			Switch s = (Switch)findViewById(R.id.switch1);
+			s.setChecked(false);
 		}
 		
 	}
@@ -179,74 +222,91 @@ public class CreateTaskActivity extends Activity implements
 		EditText date = (EditText)findViewById(R.id.taskDateEdit);
 		EditText time = (EditText)findViewById(R.id.taskTimeEdit);
 		
-		myTask.setDescription(text.getText().toString());
-		myTask.setCompleted(false);
-		if(myTask.getPriority() == null)
+		if(text.getText().toString().matches(""))
 		{
-			myTask.setPriority(Priority.NORMAL);
+			new AlertDialog.Builder(this)
+		    .setTitle("Fill Description")
+		    .setMessage("Please fill task description")
+		    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int which) { 
+		            // continue with delete
+		        	return;
+		        }
+		     })
+		   
+		    .setIcon(android.R.drawable.ic_dialog_info)
+		     .show();
 		}
-		
-		String oldstring = date.getText()+" "+time.getText();
-		try
+		else
 		{
-			Date myDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(oldstring);
-			myTask.setDueDate(myDate);
-			myTask.setHasDate(true);
-		}catch(Exception e){myTask.setHasDate(false);};
-		
-		Intent returnIntent = new Intent();
-		
-		DBHelper db = new DBHelper(this);
-		long res = db.addTask(myTask);
-		myTask.setTaskId(res);
-		
-		returnIntent.putExtra("item",myTask);
-		setResult(RESULT_OK,returnIntent);
-		
-		if(myTask.getHasDate())
-		{
-			Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
-			myIntent.putExtra("task", myTask);
-			
-			PendingIntent pendingIntent =
-					PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
-			
-			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-			
-			Calendar calendar = Calendar.getInstance();
-			
-			calendar.setTimeInMillis(myTask.getDueDate().getTime());
-	
-	        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
-		}
 		
 		
-		if(myTask.getHasLocation())
-		{
-			if (!isGooglePlayServicesAvailable()) {
-				Log.e("Rememeber", "Google Play services unavailable.");
-				finish();
-				return;
+			myTask.setDescription(text.getText().toString());
+			myTask.setCompleted(false);
+			if(myTask.getPriority() == null)
+			{
+				myTask.setPriority(Priority.NORMAL);
 			}
-
-			buildGoogleApiClient();
-
 			
-			mApiClient.connect();
+			String oldstring = date.getText()+" "+time.getText();
+			try
+			{
+				Date myDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(oldstring);
+				myTask.setDueDate(myDate);
+				myTask.setHasDate(true);
+			}catch(Exception e){myTask.setHasDate(false);};
 			
-			geofenceItem = new GeofenceItem(
-					String.valueOf(myTask.getTaskId()), // geofenceId.
-					myTask.getLocation().getLat(), myTask.getLocation().getLng(),
-					800, Constants.GEOFENCE_EXPIRATION_TIME,
-					Geofence.GEOFENCE_TRANSITION_ENTER);
+			Intent returnIntent = new Intent();
+			
+			DBHelper db = new DBHelper(this);
+			long res = db.addTask(myTask);
+			myTask.setTaskId(res);
+			
+			returnIntent.putExtra("item",myTask);
+			setResult(RESULT_OK,returnIntent);
+			
+			if(myTask.getHasDate())
+			{
+				Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
+				myIntent.putExtra("task", myTask);
+				
+				PendingIntent pendingIntent =
+						PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+				
+				AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+				
+				Calendar calendar = Calendar.getInstance();
+				
+				calendar.setTimeInMillis(myTask.getDueDate().getTime());
+		
+		        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+			}
 			
 			
-			mGeofenceList.add(geofenceItem.toGeofence());
-			
-			
-			
+			if(myTask.getHasLocation())
+			{
+				if (!isGooglePlayServicesAvailable()) {
+					Log.e("Rememeber", "Google Play services unavailable.");
+					finish();
+					return;
+				}
+	
+				buildGoogleApiClient();
+	
+				
+				mApiClient.connect();
+				
+				geofenceItem = new GeofenceItem(
+						String.valueOf(myTask.getTaskId()), // geofenceId.
+						myTask.getLocation().getLat(), myTask.getLocation().getLng(),
+						200, Constants.GEOFENCE_EXPIRATION_TIME,
+						Geofence.GEOFENCE_TRANSITION_ENTER);
+				
+				
+				mGeofenceList.add(geofenceItem.toGeofence());
+			}
+			finish();
 		}
-		finish();
 	}
 	
 	private GeofencingRequest getGeofencingRequest() {
@@ -262,27 +322,112 @@ public class CreateTaskActivity extends Activity implements
 		EditText date = (EditText)findViewById(R.id.taskDateEdit);
 		EditText time = (EditText)findViewById(R.id.taskTimeEdit);
 		
-		myTask.setDescription(text.getText().toString());
-		myTask.setCompleted(false);
-		String oldstring = date.getText()+" "+time.getText();
 		
-		try
+		if(text.getText().toString().matches(""))
 		{
-			Date myDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(oldstring);
-			myTask.setDueDate(myDate);
-			myTask.setHasDate(true);
-		}catch(Exception e){myTask.setHasDate(false);};
+			new AlertDialog.Builder(this)
+		    .setTitle("Fill Description")
+		    .setMessage("Please fill task description")
+		    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+		        public void onClick(DialogInterface dialog, int which) { 
+		            // continue with delete
+		        	return;
+		        }
+		     })
+		   
+		    .setIcon(android.R.drawable.ic_dialog_info)
+		     .show();
+		}
+		else
+		{
+			myTask.setDescription(text.getText().toString());
+			
+			if(myTask.getPriority() == null)
+			{
+				myTask.setPriority(Priority.NORMAL);
+			}
+			
+			String oldstring = date.getText()+" "+time.getText();
+			try
+			{
+				Date myDate = new SimpleDateFormat("dd/MM/yyyy HH:mm").parse(oldstring);
+				myTask.setDueDate(myDate);
+				myTask.setHasDate(true);
+			}catch(Exception e){myTask.setHasDate(false);};
+			
+			
+			if(myTask.getHasDate())
+			{
+				Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
+				myIntent.putExtra("task", myTask);
+				
+				PendingIntent pendingIntent =
+						PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+				AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+				alarmManager.cancel(pendingIntent);
+			}
+			
+			if(myTask.getHasDate())
+			{
+				//delete prior alarm
+				
+				//make new alarm
+				Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
+				myIntent.putExtra("task", myTask);
+				
+				PendingIntent pendingIntent =
+						PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_CANCEL_CURRENT);
+				
+				AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+				
+				Calendar calendar = Calendar.getInstance();
+				
+				calendar.setTimeInMillis(myTask.getDueDate().getTime());
+		
+		        alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.getTimeInMillis(), pendingIntent);
+			}
+			
+			
+			if(myTask.getHasLocation())
+			{
+				if (!isGooglePlayServicesAvailable()) {
+					Log.e("Rememeber", "Google Play services unavailable.");
+					finish();
+					return;
+				}
+
+				buildGoogleApiClient();
+
+				
+				mApiClient.connect();
+				
+				geofenceItem = new GeofenceItem(
+						String.valueOf(myTask.getTaskId()), // geofenceId.
+						myTask.getLocation().getLat(), myTask.getLocation().getLng(),
+						200, Constants.GEOFENCE_EXPIRATION_TIME,
+						Geofence.GEOFENCE_TRANSITION_ENTER);
+				
+				
+				mGeofenceList.add(geofenceItem.toGeofence());
+			}
+			
+
+			Intent returnIntent = new Intent();
+			
+			DBHelper db = new DBHelper(this);
+			db.updateTask(myTask);
+		
+			
+			
+			returnIntent.putExtra("item",myTask);
+			setResult(RESULT_OK,returnIntent);
+			finish();
+		}
 		
 		
-		Intent returnIntent = new Intent();
+		/*
 		
-		DBHelper db = new DBHelper(this);
-		db.updateTask(myTask);
-		
-		
-		returnIntent.putExtra("item",myTask);
-		setResult(RESULT_OK,returnIntent);
-		finish();
+		*/
 	}
 	
 	public void onRadioButtonClicked(View view) {
@@ -322,8 +467,23 @@ public class CreateTaskActivity extends Activity implements
 	
 	public void showMapWindow(View view) {
 		
-		Intent i = new Intent(this,Map.class);
-		startActivityForResult(i, REQUEST_CODE_GET_LOC);
+		Switch s = (Switch)view;
+		if(s.isChecked())
+		{
+			Intent i = new Intent(this,Map.class);
+			startActivityForResult(i, REQUEST_CODE_GET_LOC);
+		}
+		else
+		{
+			if(myTask.getHasLocation())
+			{
+				List<String> ids =new ArrayList<String>();
+				ids.add(String.valueOf(myTask.getTaskId()));
+				
+				LocationServices.GeofencingApi.removeGeofences(mApiClient, ids);
+				myTask.setHasLocation(false);
+			}
+		}
 	}
 	
 	
@@ -334,49 +494,49 @@ public class CreateTaskActivity extends Activity implements
 	
 	public void deleteBtnClick(View view)
 	{
-		if(myTask.getHasLocation())
-		{
-			List<String> ids =new ArrayList<String>();
-			ids.add(String.valueOf(myTask.getTaskId()));
-			
-			//LocationServices.GeofencingApi.
-			/*
-			try {
-	            // Remove geofences.
-	            LocationServices.GeofencingApi.removeGeofences(
-	                    mApiClient,
-	                    // This is the same pending intent that was used in addGeofences().
-	                    getGeofenceTransitionPendingIntent()
-	            ).setResultCallback(this); // Result processed in onResult().
-	        } catch (SecurityException securityException) {
-	            // Catch exception generated if the app does not use ACCESS_FINE_LOCATION permission.
-	           
-	        }*/
-			LocationServices.GeofencingApi.removeGeofences(mApiClient, ids);
-		}
+		new AlertDialog.Builder(this)
+	    .setTitle("Delete Task")
+	    .setMessage("Are you sure you want to delete?")
+	    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+	        public void onClick(DialogInterface dialog, int which) { 
+	        	if(myTask.getHasLocation())
+	    		{
+	    			List<String> ids =new ArrayList<String>();
+	    			ids.add(String.valueOf(myTask.getTaskId()));
+	    			LocationServices.GeofencingApi.removeGeofences(mApiClient, ids);
+	    		}
+	    		
+	    		if(myTask.getHasDate())
+	    		{
+	    			Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
+	    			myIntent.putExtra("task", myTask);
+	    			
+	    			PendingIntent pendingIntent =
+	    					PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+	    			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
+	    			alarmManager.cancel(pendingIntent);
+	    		}
+	    		Intent returnIntent = new Intent();
+	    		
+	    		myTask.setToDelete(true);
+	    		
+	    		DBHelper db = new DBHelper(getApplicationContext());
+	    		db.deleteTask(myTask);
+	    		
+	    		returnIntent.putExtra("item",myTask);
+	    		setResult(RESULT_OK,returnIntent);
+	    		finish();
+	        }
+	     })
+	    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+	        public void onClick(DialogInterface dialog, int which) { 
+	            // do nothing
+	        }
+	     })
+	    .setIcon(android.R.drawable.ic_dialog_alert)
+	     .show();
 		
-		if(myTask.getHasDate())
-		{
-			Intent myIntent = new Intent(getBaseContext(), ReminderNotification.class);
-			myIntent.putExtra("task", myTask);
-			
-			PendingIntent pendingIntent =
-					PendingIntent.getBroadcast(getBaseContext(), (int) myTask.getTaskId(), myIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-			
-			AlarmManager alarmManager = (AlarmManager)getSystemService(ALARM_SERVICE);
-			
-			alarmManager.cancel(pendingIntent);
-		}
-		Intent returnIntent = new Intent();
 		
-		myTask.setToDelete(true);
-		
-		DBHelper db = new DBHelper(this);
-		db.deleteTask(myTask);
-		
-		returnIntent.putExtra("item",myTask);
-		setResult(RESULT_OK,returnIntent);
-		finish();
 	}
 	
 	/**
@@ -404,15 +564,14 @@ public class CreateTaskActivity extends Activity implements
 	 */
 	private PendingIntent getGeofenceTransitionPendingIntent() {
 		
-		Intent intent = new Intent(this, GeofencingReceiverIntentService.class);
-		return PendingIntent.getService(this, 0, intent,
+		Intent intent = new Intent(getApplicationContext(), GeofencingReceiverIntentService.class);
+		return PendingIntent.getService(getApplicationContext(), 0, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 
 	}
 
 	@Override
 	public void onConnectionFailed(ConnectionResult connectionResult) {
-		// TODO Auto-generated method stub
 		if (connectionResult.hasResolution()) {
 			try {
 				connectionResult.startResolutionForResult(this,
@@ -434,7 +593,6 @@ public class CreateTaskActivity extends Activity implements
 		// TODO Auto-generated method stub
 		
 		mGeofenceRequestIntent = getGeofenceTransitionPendingIntent();
-		
 		if(!updateMode)
 		{
 			LocationServices.GeofencingApi.addGeofences(
@@ -442,10 +600,6 @@ public class CreateTaskActivity extends Activity implements
 	                getGeofencingRequest(),
 	                mGeofenceRequestIntent).setResultCallback(this);
 		}
-		
-		
-		
-		
 	}
 	
 	protected void createLocationRequest() {
@@ -465,22 +619,31 @@ public class CreateTaskActivity extends Activity implements
 
 	@Override
 	public void onConnectionSuspended(int arg0) {
-		// TODO Auto-generated method stub
 		Toast.makeText(this, "geofence service suspend", Toast.LENGTH_SHORT).show();
 		
 		
 	} 
 
 	public void onDisconnected() {
-		// TODO Auto-generated method stub
 		Toast.makeText(this, "geofence service disconnected", Toast.LENGTH_SHORT).show();
 		
 	}
 
 	@Override
 	public void onResult(Result arg0) {
-		// TODO Auto-generated method stub
-		//Toast.makeText(this, "Result Create", Toast.LENGTH_LONG).show();
 		
+	}
+	
+	@Override
+	public void onStart(){
+		super.onStart();
+		GoogleAnalytics.getInstance(this).reportActivityStart(this);
+	}
+	
+	@Override
+	public void onStop(){
+		super.onStop();
+		GoogleAnalytics.getInstance(this).reportActivityStop(this);
+
 	}
 }

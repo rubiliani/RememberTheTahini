@@ -16,6 +16,12 @@
         android:layout_height="wrap_content"
         android:text="@string/new_task_btn" 
         android:onClick="newTaskBtn"/>
+    
+    <Spinner android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:entries="@array/priority_arrays"
+        android:layout_marginTop="10dp"
+        android:id="@+id/prioritySpinner"/>
        
     <ListView
         android:id="@+id/listView"

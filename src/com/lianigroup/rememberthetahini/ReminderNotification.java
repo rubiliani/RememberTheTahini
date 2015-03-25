@@ -27,10 +27,12 @@ public class ReminderNotification extends BroadcastReceiver{
 
 					// Build notification
 					Notification noti = new Notification.Builder(context)
-					.setContentTitle("Task Reminder").setContentText(task.getDescription())
-					.setSmallIcon(R.drawable.ic_launcher).setContentIntent(contentIntent)
+					.setContentTitle("Time Reminder").setContentText(task.getDescription())
+					.setSmallIcon(R.drawable.tasker_launcher).setContentIntent(contentIntent)
 					.build();
 					noti.flags |= Notification.FLAG_AUTO_CANCEL;
+					noti.defaults |= Notification.DEFAULT_SOUND;
+					noti.defaults |= Notification.DEFAULT_VIBRATE;
 					notificationManager.notify(0, noti);
 					
 		

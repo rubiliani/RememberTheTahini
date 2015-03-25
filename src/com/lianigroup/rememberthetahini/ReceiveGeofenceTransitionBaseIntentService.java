@@ -38,6 +38,9 @@ public abstract class ReceiveGeofenceTransitionBaseIntentService extends
 	protected void onHandleIntent(Intent intent) {
 
 		GeofencingEvent event = GeofencingEvent.fromIntent(intent);
+	
+		//TaskItem task = (TaskItem)intent.getSerializableExtra("task");
+		//Log.d(TAG, task.getDescription());
 		if (event != null) {
 
 			if (event.hasError()) {
@@ -62,6 +65,8 @@ public abstract class ReceiveGeofenceTransitionBaseIntentService extends
 						onExitedGeofences(geofenceIds);
 					}
 				}
+				else
+					Log.e(TAG,transition+""+event.getErrorCode());
 			}
 
 		}

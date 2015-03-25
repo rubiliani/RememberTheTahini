@@ -4,15 +4,20 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Locale;
 
+import com.google.android.gms.analytics.GoogleAnalytics;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -24,7 +29,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
-public class Map extends Activity {
+public class Map extends Activity implements OnMapReadyCallback {
 
 	private GoogleMap googleMap;
 	private MapPoint mySelection;
@@ -34,9 +39,13 @@ public class Map extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_map);
 		
+		//Get a Tracker (should auto-report)
+		((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
+				
 		 try {
 	            // Loading map
 	            initilizeMap();
+	          
 	            
 	 
 	        } catch (Exception e) {
@@ -52,7 +61,15 @@ public class Map extends Activity {
 		        	mySelection = new MapPoint(point.latitude,point.longitude);
 		        	// create marker
 		        	MarkerOptions marker = new MarkerOptions().position(point).title("Chosen Point");
-		        	 
+		        	
+		        	googleMap.addCircle(new CircleOptions()
+		            .center(new LatLng(point.latitude,point.longitude))
+		            .radius(200)
+		            .fillColor(0x40ff0000)  //semi-transparent
+					  .strokeColor(Color.parseColor("#6ea0fc"))
+					  .strokeWidth(5));
+							        
+		        	
 		        	// adding marker
 		        	googleMap.addMarker(marker);
 		        }
@@ -66,16 +83,13 @@ public class Map extends Activity {
         if (googleMap == null) {
             googleMap = ((MapFragment)getFragmentManager().findFragmentById(R.id.mapg)).getMap();
             googleMap.setMyLocationEnabled(true);
-            Location myLocation = getMyLocation();
-            LatLng myLatLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+            
+            MapFragment mapFragment = (MapFragment) getFragmentManager()
+                    .findFragmentById(R.id.mapg);
+            mapFragment.getMapAsync(this);
+            
  
-            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng,20));
-            // check if map is created successfully or not
-            if (googleMap == null) {
-                Toast.makeText(getApplicationContext(),
-                        "Sorry! unable to create maps", Toast.LENGTH_SHORT)
-                        .show();
-            }
+            
         }
     }
 	
@@ -159,12 +173,40 @@ public class Map extends Activity {
 			//DBHelper db = new DBHelper(this);
 			//long res = db.addTask(task);
 			//task.setTaskId(res);
-			Toast.makeText(getApplicationContext(),
-                    getLocationName(), Toast.LENGTH_SHORT)
-                    .show();
 			returnIntent.putExtra("latlng",mySelection);
 			setResult(RESULT_OK,returnIntent);
 			finish();
 		}
+
+	@Override
+	public void onMapReady(GoogleMap googleMap) {
+		// TODO Auto-generated method stub
+		Location myLocation = getMyLocation();
+		if(myLocation==null)
+			return;
+        LatLng myLatLng = new LatLng(myLocation.getLatitude(),myLocation.getLongitude());
+		googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLatLng,16));
+        // check if map is created successfully or not
+        if (googleMap == null) {
+            Toast.makeText(getApplicationContext(),
+                    "Sorry! unable to create maps", Toast.LENGTH_SHORT)
+                    .show();
+        }
+		
+	}
+	
+	
+	@Override
+	public void onStart(){
+		super.onStart();
+		GoogleAnalytics.getInstance(this).reportActivityStart(this);
+	}
+	
+	@Override
+	public void onStop(){
+		super.onStop();
+		GoogleAnalytics.getInstance(this).reportActivityStop(this);
+
+	}
 
 }

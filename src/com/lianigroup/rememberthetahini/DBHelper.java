@@ -124,8 +124,93 @@ public class DBHelper extends SQLiteOpenHelper{
 	        } while (cursor.moveToNext());
 	    }
 	 
+	    db.close();
 	    // return list
 	    return taskList;
+	}
+	
+	
+	public List<TaskItem> getTasksByPriority(String prio) {
+	    List<TaskItem> taskList = new ArrayList<TaskItem>();
+	    
+	    // Select All Query
+	    String selectQuery = "SELECT  * FROM " + TaskItemEntry.TABLE_NAME +" WHERE "+TaskItemEntry.COLUMN_NAME_PRIORITY+"='"+prio+"'";
+	 
+	    SQLiteDatabase db = this.getWritableDatabase();
+	    Cursor cursor = db.rawQuery(selectQuery, null);
+	 
+	    // looping through all rows and adding to list
+	    if (cursor.moveToFirst()) {
+	        do {
+	        	int id = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_TASK_ID));
+	        	String desc = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DESCRIPTION));
+	        	String dueDate = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DUE_DATE));
+	        	Double lat = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LAT));
+	        	Double lon = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LON));
+	        	int comp = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_COMPLETED));
+	        	int locEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED));
+	        	int dateEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DATE_ENABLED));
+	        	String prior = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_PRIORITY));
+	        	
+	        	Boolean complete = false;
+	        	if(comp>0)
+	        		complete = true;
+	        	
+	        	
+	            TaskItem task = new TaskItem(id,desc,complete);
+	            task.setDueDate(dueDate);
+	            task.setLocation(lat,lon);
+	            task.setPriority(Priority.valueOf(prior));
+	          
+	            taskList.add(task);
+	        } while (cursor.moveToNext());
+	    }
+	 
+	    db.close();
+	    // return list
+	    return taskList;
+	}
+	
+	
+	public TaskItem getTasksById(String tid) {
+	    
+		TaskItem task = null;
+	    // Select All Query
+	    String selectQuery = "SELECT  * FROM " + TaskItemEntry.TABLE_NAME +" WHERE "+TaskItemEntry.COLUMN_NAME_TASK_ID+"="+tid;
+	 
+	    SQLiteDatabase db = this.getWritableDatabase();
+	    Cursor cursor = db.rawQuery(selectQuery, null);
+	 
+	    // looping through all rows and adding to list
+	    if (cursor.moveToFirst()) {
+	        do {
+	        	int id = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_TASK_ID));
+	        	String desc = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DESCRIPTION));
+	        	String dueDate = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DUE_DATE));
+	        	Double lat = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LAT));
+	        	Double lon = cursor.getDouble(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_LON));
+	        	int comp = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_COMPLETED));
+	        	int locEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_LOCATION_ENABLED));
+	        	int dateEnable = cursor.getInt(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_DATE_ENABLED));
+	        	String prior = cursor.getString(cursor.getColumnIndex(TaskItemEntry.COLUMN_NAME_PRIORITY));
+	        	
+	        	Boolean complete = false;
+	        	if(comp>0)
+	        		complete = true;
+	        	
+	        	
+	            task = new TaskItem(id,desc,complete);
+	            task.setDueDate(dueDate);
+	            task.setLocation(lat,lon);
+	            task.setPriority(Priority.valueOf(prior));
+	          
+	          
+	        } while (cursor.moveToNext());
+	    }
+	 
+	    db.close();
+	    // return list
+	    return task;
 	}
 	
 	public int updateTask(TaskItem task) {
