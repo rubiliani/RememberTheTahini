@@ -40,7 +40,7 @@ public class Map extends Activity implements OnMapReadyCallback {
 		setContentView(R.layout.activity_map);
 		
 		//Get a Tracker (should auto-report)
-		((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
+		//((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
 				
 		 try {
 	            // Loading map
@@ -199,13 +199,13 @@ public class Map extends Activity implements OnMapReadyCallback {
 	@Override
 	public void onStart(){
 		super.onStart();
-		GoogleAnalytics.getInstance(this).reportActivityStart(this);
+		//GoogleAnalytics.getInstance(this).reportActivityStart(this);
 	}
 	
 	@Override
 	public void onStop(){
 		super.onStop();
-		GoogleAnalytics.getInstance(this).reportActivityStop(this);
+		//GoogleAnalytics.getInstance(this).reportActivityStop(this);
 
 	}
 

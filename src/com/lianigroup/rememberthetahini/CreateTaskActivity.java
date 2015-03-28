@@ -41,10 +41,12 @@ import android.widget.Toast;
 public class CreateTaskActivity extends Activity implements
 		OnConnectionFailedListener, GoogleApiClient.ConnectionCallbacks,ResultCallback {
 	
-	private TaskItem myTask = new TaskItem();
-	private boolean updateMode = false;
+	private TaskItem myTask = new TaskItem(); //local task instance
+	private boolean updateMode = false; //determine if we in update mode
+	
 	public final int REQUEST_CODE_GET_LOC = 3;
-	 // Location updates intervals in sec
+	 
+	// Location updates intervals in sec
     private static int UPDATE_INTERVAL = 10000; // 10 sec
     private static int FATEST_INTERVAL = 5000; // 5 sec
     private static int DISPLACEMENT = 10; // 10 meters
@@ -59,57 +61,67 @@ public class CreateTaskActivity extends Activity implements
 	private GoogleApiClient mApiClient;
 
 	
-	private enum REQUEST_TYPE {ADD,DELETE}
-
-	private REQUEST_TYPE mRequestType;
-
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_create_task);
+		
 		//Get a Tracker (should auto-report)
 		((MyApplication) getApplication()).getTracker(MyApplication.TrackerName.APP_TRACKER);
 		
+		//check if play services are available
 		if(isGooglePlayServicesAvailable())
-		{
 			buildGoogleApiClient();
-		}
+		
+		//init local task instance
 		myTask.setHasDate(false);
 		myTask.setHasLocation(false);
 		
-		Intent i = getIntent();
 		
+		
+		//get references from gui
 		EditText text = (EditText)findViewById(R.id.taskDescEdit);
 		EditText date = (EditText)findViewById(R.id.taskDateEdit);
 		EditText time = (EditText)findViewById(R.id.taskTimeEdit);
 		date.setInputType(InputType.TYPE_NULL);
 		time.setInputType(InputType.TYPE_NULL);
 		
+		//add listener to pop up date picker
 		date.setOnFocusChangeListener(new OnFocusChangeListener() {
 			public void onFocusChange(View v, boolean hasFocus) {
 				if(hasFocus)showDatePickerDialog(v);
 			}
 		});
 		
+		//add listener to pop up time picker
 		time.setOnFocusChangeListener(new OnFocusChangeListener() {
 			public void onFocusChange(View v, boolean hasFocus) {
 				if(hasFocus)showTimePickerDialog(v);
 			}
 		});
+		
+		//get the intent (will determine if we in update mode)
+		Intent i = getIntent();
+		
+		//if we have extra in our intent,its mean we on update mode
 		if(i.hasExtra("item"))
 		{
 			updateMode = true;
+			//set activity title
 			setTitle(R.string.title_activity_update_task);
+			//get the actual task
 			myTask = (TaskItem)i.getSerializableExtra("item");
+			//inflate the view for updating 
 			setContentView(R.layout.activity_update_task);
 			
+			//get the view references from update XML
 			text = (EditText)findViewById(R.id.taskDescEdit);
 			date = (EditText)findViewById(R.id.taskDateEdit);
 			time = (EditText)findViewById(R.id.taskTimeEdit);
 			date.setInputType(InputType.TYPE_NULL);
 			time.setInputType(InputType.TYPE_NULL);
 			
+			//add listeners to update controls/
 			date.setOnFocusChangeListener(new OnFocusChangeListener() {
 				public void onFocusChange(View v, boolean hasFocus) {
 					if(hasFocus)showDatePickerDialog(v);
@@ -122,7 +134,9 @@ public class CreateTaskActivity extends Activity implements
 				}
 			});
 			
+			//set the task description 
 			text.setText(myTask.getDescription());
+			//set the date time
 			if(myTask.getHasDate())
 			{
 				SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
@@ -131,6 +145,7 @@ public class CreateTaskActivity extends Activity implements
 				time.setText(sdft.format(myTask.getDueDate()));
 			}
 			
+			//set priority
 			switch (myTask.getPriority()) 
 			{
 				case HIGH:
@@ -148,7 +163,7 @@ public class CreateTaskActivity extends Activity implements
 			}
 			
 			
-			
+			//set location
 			if(myTask.getHasLocation())
 			{
 				
@@ -163,22 +178,27 @@ public class CreateTaskActivity extends Activity implements
 	}
 	
 	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		
-		
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) 
+	{
+			
 		if(resultCode == RESULT_OK)
 		{
 			switch(requestCode)
 			{
+				//after returning from Map activity
 				case REQUEST_CODE_GET_LOC:
 				{
+					//get the point from map
 					MapPoint point = (MapPoint)data.getSerializableExtra("latlng");
+					
+					//if the user didnt pick location
 					if(point==null)
 					{
 						Switch s = (Switch)findViewById(R.id.switch1);
 						s.setChecked(false);
 						return;
 					}
+					
 					myTask.setLocation(point);
 					myTask.setHasLocation(true);
 				}
@@ -189,6 +209,7 @@ public class CreateTaskActivity extends Activity implements
 		}
 		else
 		{
+			//if user press back from map activity, set the witch to off
 			Switch s = (Switch)findViewById(R.id.switch1);
 			s.setChecked(false);
 		}
@@ -215,13 +236,17 @@ public class CreateTaskActivity extends Activity implements
 		return super.onOptionsItemSelected(item);
 	}
 	
+	
+	//method when creating new task
 	public void createTaskClick(View view)
 	{
 		
+		//get references
 		EditText text = (EditText)findViewById(R.id.taskDescEdit);
 		EditText date = (EditText)findViewById(R.id.taskDateEdit);
 		EditText time = (EditText)findViewById(R.id.taskTimeEdit);
 		
+		//if user didnt fill description - show message
 		if(text.getText().toString().matches(""))
 		{
 			new AlertDialog.Builder(this)

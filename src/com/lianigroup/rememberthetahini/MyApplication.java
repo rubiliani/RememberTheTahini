@@ -18,34 +18,37 @@ public class MyApplication extends Application
 	
 	public static int GENERAL_TRACKER = 0;
 	
-	public enum TrackerName {
+	public enum TrackerName 
+	{
 		APP_TRACKER, // Tracker used only in this app.
 		GLOBAL_TRACKER, // Tracker used by all the apps from a company. eg: roll-up tracking.
 	}
 	
 	HashMap<TrackerName, Tracker> mTrackers = new HashMap<TrackerName, Tracker>();
 	
-	public MyApplication() {
-	super();
-	}
-	
-	synchronized Tracker getTracker(TrackerName trackerId) {
-	if (!mTrackers.containsKey(trackerId)) {
-	
-	GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
-	Tracker t = null;
-	if(trackerId == TrackerName.APP_TRACKER)
+	public MyApplication()
 	{
-		t = analytics.newTracker(R.xml.app_tracker);
+		super();
 	}
-	else if(trackerId == TrackerName.GLOBAL_TRACKER)
+	
+	synchronized Tracker getTracker(TrackerName trackerId) 
 	{
-		t = analytics.newTracker(PROPERTY_ID);
-	}
+		if (!mTrackers.containsKey(trackerId)) 
+		{
 	
-	mTrackers.put(trackerId, t);
+			GoogleAnalytics analytics = GoogleAnalytics.getInstance(this);
+			Tracker t = null;
+			if(trackerId == TrackerName.APP_TRACKER)
+			{
+				t = analytics.newTracker(R.xml.app_tracker);
+			}
+			else if(trackerId == TrackerName.GLOBAL_TRACKER)
+			{
+				t = analytics.newTracker(PROPERTY_ID);
+			}
 	
-	}
-	return mTrackers.get(trackerId);
+			mTrackers.put(trackerId, t);
+		}
+		return mTrackers.get(trackerId);
 	}
 }

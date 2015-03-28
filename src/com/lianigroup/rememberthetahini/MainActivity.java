@@ -108,9 +108,6 @@ public class MainActivity extends Activity implements ResultCallback, OnItemSele
 		
 		Spinner spin = (Spinner) findViewById(R.id.prioritySpinner);
 		spin.setOnItemSelectedListener(this);
-		
-		
-
 	}
 
 	@Override
@@ -223,4 +220,36 @@ public class MainActivity extends Activity implements ResultCallback, OnItemSele
 		
 	}
 	
+	@Override
+	public void onResume(){
+		super.onResume();
+		
+		list  = (ListView)findViewById(R.id.listView);
+		
+		//connect to SQLite
+		DBHelper db = new DBHelper(this);
+		//get all tasks from db
+		Spinner spin = (Spinner)findViewById(R.id.prioritySpinner);
+		int position = spin.getSelectedItemPosition();
+		if(position==0)
+			itemList = db.getAllTasks();
+		else
+			switch(position)
+			{
+				case 1:
+					itemList = db.getTasksByPriority(Priority.NORMAL.toString());
+					break;
+				case 2:
+					itemList = db.getTasksByPriority(Priority.MEDIUM.toString());
+					break;
+				case 3:
+					itemList = db.getTasksByPriority(Priority.HIGH.toString());
+					break;
+			}
+			
+		//fill the list with tasks
+		list.setAdapter(new TaskItemAdapter(context, itemList));
+		
+		
+	}
 }

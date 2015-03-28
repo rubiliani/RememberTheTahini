@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.lianigroup.rememberthetahini"
-    android:versionCode="2"
-    android:versionName="2.0" >
+    android:versionCode="4"
+    android:versionName="4.0" >
     
     <permission
         android:name="com.lianigroup.rememberthetahini.permission.MAPS_RECEIVE"
@@ -32,7 +32,11 @@
         android:icon="@drawable/tasker_launcher"
         android:label="@string/app_name"
         android:theme="@style/AppTheme" >
+        
         <receiver android:name="ReminderNotification"/>
+        <receiver android:name="SnoozeReminderReceiver"/>
+        <receiver android:name="DoneActionReceiver"/>
+         
         <!-- Google Analytics Version v4 needs this value for easy tracking -->
 		<meta-data android:name="com.google.android.gms.analytics.globalConfigResource"
 		android:resource="@xml/global_tracker" />
@@ -57,10 +61,9 @@
 		    android:value="@integer/google_play_services_version" />
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
-            android:value="AIzaSyBOvihbRdUh6h7bn1-t7WrNzitz-837xdo" />
+            android:value="AIzaSyBwzF-f53vz9ggw37JKZ5rXXi9dXAcrMQU" />
          
-         <service android:name=".GeofencingReceiverIntentService">
-         </service>        
+         <service android:name=".GeofencingReceiverIntentService"></service>        
     </application>
 
 </manifest>
